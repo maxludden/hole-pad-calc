@@ -1,9 +1,7 @@
-from pydantic import BaseModel, Field, field_validator, ValidationError
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.text import Text
+from typing import Optional, Union
 
+from rich.console import Console
+from rich.text import Text
 from hole_pad_calc.unit import Unit
 
 class Measurement:
@@ -11,28 +9,44 @@ class Measurement:
 
     Args:
         value (float): Value of the measurement
-        unit (str, optional): Unit of the measurement. Defaults to 'in'. Valid values are 'in' or 'mm' or 'mil'
+        unit (str or Unit, optional): Unit of the measurement. Defaults to 'in'.
     """
-    value: float|int = Field(..., title="Value of the Measurement", description="Value of the measurement", init=True)
-    unit: str = Field(Unit(), title="Unit of the Measurement", description="Unit of the measurement", init=True)
 
-    def __init__(self, value: float|int, unit: Unit = Unit('in')) -> None:
-        if value is None:
-            raise ValueError("Value cannot be None")
+    def __init__(self, value: Union[float, int], unit: Optional[Union[str, Unit]] = None) -> None:
+        self.unit = unit
+        self.value = value
 
-    @field_validator('unit')
-    def check_unit(cls, v: Unit):
-        if v.unit not in ['in', 'mm', 'mil']:
-            raise ValueError(f"Unit must be either 'in', 'mm', or 'mil'. Got {v.unit}")
+    @property
+    def unit(self) -> Unit:
+        return self._unit
 
-    @field_validator('value')
-    def value_is_numeric(cls, v: float|int):
-        if not isinstance(v, (int, float)):
-            raise ValueError(f"Value must be a number. Got {type(v)}")
+    @unit.setter
+    def unit(self, v: Optional[Union[str, Unit]]) -> None:
+        if v is None:
+            v = 'in'
+        if isinstance(v, str):
+            if v not in ['in', 'mm', 'mil']:
+                raise ValueError(f"Unit must be 'in', 'mm', or 'mil'. Got {v}.")
+            v = Unit(v)
+        elif not isinstance(v, Unit):
+            raise ValueError(f"Unit must be a string or Unit object. Got {type(v)}.")
+        self._unit: Unit = v
+
+    @property
+    def value(self) -> float:
+        return self._value
+
+    @value.setter
+    def value(self, v: Optional[Union[int, float]] = None) -> None:
+        if isinstance(v, int):
+            v = float(v)
+        if not isinstance(v, float):
+            raise ValueError(f"Value must be a numerical value (int or float). Got {type(v)}.")
+        self._value = v
 
     @classmethod
-    def __call__(cls, value: float|int, unit: str = 'in'):
-        return cls(value=value, unit=Unit(unit))
+    def __call__(cls, value: Union[float, int], unit: Optional[Union[str, Unit]] = 'in'):
+        return cls(value=value, unit=unit)
 
     def __str__(self) -> str:
         return f"{self.value} {self.unit}"
@@ -41,22 +55,12 @@ class Measurement:
         return f"Measurement<{self.value} {self.unit}>"
 
     def __int__(self) -> int:
-        """Converts the value to an integer if the float is an integer."""
         if isinstance(self.value, float) and not self.value.is_integer():
             raise ValueError(f"Cannot convert {self.value} to int as it is not an integer.")
         return int(self.value)
 
     def __float__(self) -> float:
         return float(self.value)
-
-    def rich(self) -> Text:
-        return Text.assemble(
-            *[
-                Text(str(self.value), style="bold #ffffff"),
-                Text(" "),
-                Text(str(self.unit), style="bold italic #af00ff")
-            ]
-        )
 
     def __rich__(self) -> Text:
         return self.rich()
@@ -71,6 +75,64 @@ class Measurement:
             ]
         )
 
+    def __add__(self, other: Union[int, float, "Measurement"]) -> 'Measurement':
+        if isinstance(other, int):
+            other = Measurement(float(other), self.unit)
+            return Measurement(value=self.value + other.value, unit=self.unit)
+        elif isinstance(other, float):
+            other = Measurement(other, self.unit)
+            return Measurement(value=self.value + other.value, unit=self.unit)
+        elif isinstance(other, Measurement):
+            if self.unit != other.unit:
+                other.value = other.convert(str(self.unit))
+                other.unit = str(self.unit)
+            return Measurement(value=self.value + other.value, unit=self.unit)
+        raise ValueError(f"Cannot add Measurement to {type(other)}.")
+
+    def __sub__(self, other: 'Measurement') -> 'Measurement':
+        if isinstance(other, int):
+            other = Measurement(float(other), self.unit)
+            return Measurement(value=self.value - other.value, unit=self.unit)
+        elif isinstance(other, float):
+            other = Measurement(other, self.unit)
+            return Measurement(value=self.value - other.value, unit=self.unit)
+        elif isinstance(other, Measurement):
+            if self.unit != other.unit:
+                other.value = other.convert(str(self.unit))
+                other.unit = str(self.unit)
+            return Measurement(value=self.value - other.value, unit=self.unit)
+        raise ValueError(f"Cannot add Measurement to {type(other)}.")
+
+    def __mul__(self, other: Union[int, float, "Measurement"]) -> 'Measurement':
+        if isinstance(other, Measurement):
+            if self.unit != other.unit:
+                other.value = other.convert(str(self.unit))
+                other.unit = str(self.unit)
+            return Measurement(value=self.value * other.value, unit=self.unit)
+        elif not isinstance(other, (int, float)):
+            raise ValueError(f"Cannot multiply Measurement by {type(other)}.")
+        return Measurement(value=self.value * other, unit=self.unit)
+
+    def __truediv__(self, other: Union[int, float, "Measurement"]) -> 'Measurement':
+        if isinstance(other, Measurement):
+            if self.unit != other.unit:
+                other.value = other.convert(str(self.unit))
+                other.unit = str(self.unit)
+            return Measurement(value=self.value / other.value, unit=self.unit)
+        elif not isinstance(other, (int, float)):
+            raise ValueError(f"Cannot multiply Measurement by {type(other)}.")
+        return Measurement(value=self.value / other, unit=self.unit)
+
+    def __floordiv__(self, other: Union[int, float]) -> 'Measurement':
+        if isinstance(other, Measurement):
+            if self.unit != other.unit:
+                other.value = other.convert(str(self.unit))
+                other.unit = str(self.unit)
+            return Measurement(value=self.value // other.value, unit=self.unit)
+        elif not isinstance(other, (int, float)):
+            raise ValueError(f"Cannot multiply Measurement by {type(other)}.")
+        return Measurement(value=self.value // other, unit=self.unit)
+
     def convert(self, to: str) -> float:
         """Converts the value to the specified unit.
 
@@ -82,27 +144,11 @@ class Measurement:
         """
         return self.unit.convert(self.value, to)
 
-    def __add__(self, other) -> 'Measurement':
-        if self.unit != other.unit:
-            raise ValueError(f"Cannot add measurements with different units. Got {self.unit} and {other.unit}")
-        return Measurement(value=self.value + other.value, unit=self.unit)
-
-    def __sub__(self, other) -> 'Measurement':
-        if self.unit != other.unit:
-            raise ValueError(f"Cannot subtract measurements with different units. Got {self.unit} and {other.unit}")
-        return Measurement(value=self.value - other.value, unit=self.unit)
-
-    def __mul__(self, other) -> 'Measurement':
-        if not isinstance(other, (int, float)):
-            raise ValueError(f"Cannot multiply by non-numeric type. Got {type(other)}")
-        return Measurement(value=self.value * other, unit=self.unit)
-
-    def __truediv__(self, other) -> 'Measurement':
-        if not isinstance(other, (int, float)):
-            raise ValueError(f"Cannot divide by non-numeric type. Got {type(other)}")
-        return Measurement(value=self.value / other, unit=self.unit)
-
-    def __floordiv__(self, other) -> 'Measurement':
-        if not isinstance(other, (int, float)):
-            raise ValueError(f"Cannot divide by non-numeric type. Got {type(other)}")
-        return Measurement(value=self.value // other, unit=self.unit)
+    def rich(self) -> Text:
+        return Text.assemble(
+            *[
+                Text(str(self.value), style="bold #ffffff"),
+                Text(" "),
+                Text(str(self.unit), style="bold italic #af00ff")
+            ]
+        )
