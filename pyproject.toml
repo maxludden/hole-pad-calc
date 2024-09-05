@@ -1,0 +1,29 @@
+[project]
+name = "hole-pad-calc"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Max Ludden", email = "dev@maxludden.com" }
+]
+dependencies = [
+    "rich>=13.8.0",
+    "rich-gradient>=0.1.7",
+    "python-dotenv[cli]>=1.0.1",
+    "pydantic>=2.8.2",
+]
+readme = "README.md"
+requires-python = ">= 3.12"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hole_pad_calc"]
