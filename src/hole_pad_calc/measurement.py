@@ -6,7 +6,7 @@ from rich.text import Text
 
 from hole_pad_calc.unit import Unit
 
-class Measurement(BaseModel):
+class Measurement:
     """Measurement of a hole or pad.
 
     Args:
@@ -14,10 +14,11 @@ class Measurement(BaseModel):
         unit (str, optional): Unit of the measurement. Defaults to 'in'. Valid values are 'in' or 'mm' or 'mil'
     """
     value: float|int = Field(..., title="Value of the Measurement", description="Value of the measurement", init=True)
-    unit: Unit = Field(Unit(), title="Unit of the Measurement", description="Unit of the measurement", init=True)
+    unit: str = Field(Unit(), title="Unit of the Measurement", description="Unit of the measurement", init=True)
 
     def __init__(self, value: float|int, unit: Unit = Unit('in')) -> None:
-        super().__init__(value=value, unit=unit)
+        if value is None:
+            raise ValueError("Value cannot be None")
 
     @field_validator('unit')
     def check_unit(cls, v: Unit):
