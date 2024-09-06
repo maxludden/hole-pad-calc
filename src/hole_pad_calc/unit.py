@@ -1,12 +1,10 @@
 from typing import Union
 
-from rich.console import Console
 from rich.text import Text
-from rich.traceback import install as tr_install
 from rich_gradient import Color, Gradient
 
-console=Console()
-tr_install(console=console)
+from hole_pad_calc import console
+
 
 class Unit:
     VALID_UNITS = ['in', 'mm', 'mil']
@@ -29,11 +27,20 @@ class Unit:
     def __str__(self) -> str:
         return self.unit
 
-    def __eq__(self, other: 'Unit') -> bool:
-        return self.unit == other.unit
 
-    def __ne__(self, other: 'Unit') -> bool:
-        return self.unit != other.unit
+    def __eq__(self, other: Union[str, "Unit"]) -> bool:
+        if not isinstance(other, (str, Unit)):
+            raise NotImplementedError("Cannot compare Unit with non-string or non-Unit type.")
+        if isinstance(other, Unit):
+            return self.unit == other.unit
+        return str(self.unit) == other
+
+    def __ne__(self, other: Union[str, "Unit"]) -> bool:
+        if not isinstance(other, (str, Unit)):
+            raise NotImplementedError("Cannot compare Unit with non-string or non-Unit type.")
+        if isinstance(other, Unit):
+            return self.unit != other.unit
+        return str(self.unit) != other
 
     def __hash__(self) -> int:
         return hash(self.unit)
