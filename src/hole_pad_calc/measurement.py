@@ -144,11 +144,12 @@ class Measurement:
         return Measurement(value=round(conversion_value, PLACES[to]), unit=to)
 
     def rich(self) -> Text:
+        PLACES = {"in": 5, "mm": 4, "mil": 3}
         return Text.assemble(
             *[
-                Text(str(self.value), style="bold #ffffff"),
+                Text(str(round(self.value, PLACES[str(self.unit)])), style="bold"),
                 Text(" "),
-                Text(str(self.unit), style="bold italic #af00ff")
+                Text(str(self.unit), style="bold")
             ]
         )
 
