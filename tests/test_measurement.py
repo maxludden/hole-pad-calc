@@ -78,7 +78,7 @@ def test_floordiv_with_number():
 def test_conversion():
     m = Measurement(1, 'in')
     result = m.convert('mm')
-    assert pytest.approx(result, 0.01) == 25.4
+    assert pytest.approx(result.value, 0.01) == 25.4
 
 def test_rich_text():
     m = Measurement(10.5, 'in')
