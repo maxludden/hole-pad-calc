@@ -1,11 +1,9 @@
-from enum import Enum, auto
 from math import sqrt
-from pathlib import Path
-from typing import Literal, Optional, Tuple, TypeAlias
+from typing import Optional, Tuple
 
 from rich.box import ROUNDED
 from rich.console import Console
-from rich.prompt import FloatPrompt, Confirm, Prompt
+from rich.prompt import Confirm, FloatPrompt, Prompt
 from rich.table import Table
 from rich.text import Text
 from rich_gradient import Gradient
@@ -20,57 +18,103 @@ class RectCalc:
     hypo: Measurement
     hole_size: Measurement
     pad_size: Measurement
-    PLACES = {'in': 5, 'mm': 4, 'mil': 3}
+    PLACES = {"in": 5, "mm": 4, "mil": 3}
+    TOLERANCE = 0.001
 
     def __init__(
-        self, length: Optional[Measurement] = None, width: Optional[Measurement] = None
-    ) -> None:
+        self,
+        length: Optional[Measurement] = None,
+        width: Optional[Measurement] = None,
+        *,
+        hole: Optional[Measurement] = None,
+        verbose: bool = False) -> None:
+        """Calculate the pin, hole, and pad sizes for a rectangular pin."""
+        self.verbose: bool = verbose
+        # Validate input
         if not length and not width:
-            raise ValueError("Length and/or width must be provided")
-        if length and width:
-            self.length = length.convert("in")
-            self.width = width.convert("in")
-            self.hypo = self.calc_hypo()
-            self.hole_size = self.calc_hole()
-            self.pad_size = self.calc_pad()
-        elif length and not width:
-            self.length = length
-            _square: bool = Confirm.ask("Is the rectangle a square?")
-            if _square:
-                self.width = self.length
+            # If no length or width is provided but hole size is:
+            if hole:
+                # calculate the pin size from the hole size
+                self.hole_size = hole.convert("in")
+                self.hypo = self.hole_size - Measurement(0.0059, "in")
+                length = self.hypo / sqrt(2)
+                width = length
             else:
-                width_value = FloatPrompt.ask("Enter the width of the rectangle")
-                width_unit = Prompt.ask(
-                    "Enter the unit of the width",
-                    choices=['in', 'mm', 'mil'],
-                    default="in",
+                raise ValueError("Length and/or width or hole must be provided.")
+
+        if length or width:
+            # if length or width is provided, calculate the pin size
+            if length and width:
+                self.length = length.convert("in")
+                self.width = width.convert("in")
+                if hole:
+                    self.hole_size = hole.convert("in")
+                    self.hypo = self.calc_hypo(self.length, self.width)
+                    calculated_hole = self.calc_hole(self.length, self.width)
+                    # Check if the provided hole size is close to the calculated hole size
+                    if abs(calculated_hole.value - self.hole_size.value) > self.TOLERANCE:
+                        raise ValueError(
+                            f"Provided hole size {self.hole_size} is not consistent with "
+                            f"calculated hole size {calculated_hole}."
+                        )
+            elif length and not width:
+                self.length = length.convert("in")
+                self.width = self.length
+                if hole:
+                    self.hole_size = hole.convert("in")
+            elif width and not length:
+                self.width = width.convert("in")
+                self.length = self.width
+                if hole:
+                    self.hole_size = hole.convert("in")
+            else:
+                raise ValueError("Length and/or width must be provided")
+
+        self.hypo = self.calc_hypo()
+        self.hole_size = self.calc_hole()
+        if hole:
+            if self.verbose:
+                console.print(
+                    f"Calculated Hole Size: {self.hole_size}",
                 )
-                self.width = Measurement(width_value, unit=width_unit)
-            self.hypo = self.calc_hypo()
-            self.hole_size = self.calc_hole()
-            self.pad_size = self.calc_pad()
-        else:
+                console.print(
+                    f"Entered Hole Size: {self.hole_size}",
+                )
+        self.pad_size = self.calc_pad()
+
+
+    @classmethod
+    def prompt(cls) -> "RectCalc":
+        mode = Prompt.ask("Generate from pin or hole size?", choices=["pin", "hole"], default="pin", show_choices=True)
+        if mode == "pin":
             length_value = FloatPrompt.ask("Enter the length of the rectangle")
             length_unit = Prompt.ask(
                 "Enter the unit of the length",
-                choices=['in', 'mm', 'mil'],
+                choices=["in", "mm", "mil"],
                 default="in",
             )
-            self.length = Measurement(length_value, unit=length_unit)
-            if self.length.unit != "in":
-                self.length = self.length.convert("in")
+            length = Measurement(length_value, unit=length_unit)
+            if length.unit != "in":
+                length = length.convert("in")
             width_value = FloatPrompt.ask("Enter the width of the rectangle")
             width_unit = Prompt.ask(
                 "Enter the unit of the width",
-                choices=['in', 'mm', 'mil'],
+                choices=["in", "mm", "mil"],
                 default="in",
             )
-            self.width = Measurement(width_value, width_unit)
-            if self.width.unit != "in":
-                self.width = self.width.convert("in")
-            self.hypo = self.calc_hypo()
-            self.hole_size = self.calc_hole()
-            self.pad_size = self.calc_pad()
+            width = Measurement(width_value, unit=width_unit)
+            if width.unit != "in":
+                width = width.convert("in")
+            return cls(length, width)
+        else:
+            hole_size = FloatPrompt.ask("Enter the size of the hole")
+            hole_unit = Prompt.ask(
+                "Enter the unit of the hole",
+                choices=["in", "mm", "mil"],
+                default="in",
+            )
+            hole_size = Measurement(hole_size, unit=hole_unit)
+            return cls(hole=hole_size)
 
     def __rich__(self) -> Table:
         places: int = self.PLACES[str(self.length.unit)]
@@ -79,7 +123,7 @@ class RectCalc:
                 "Rectangular Hole Calculator", rainbow=True, justify="center"
             ),
             box=ROUNDED,
-            row_styles=['on #000000', 'on #222222'],
+            row_styles=["on #000000", "on #222222"],
         )
         table.add_column(
             Text("Length", style="b #000000 on #00aaff", justify="center"),
@@ -112,8 +156,20 @@ class RectCalc:
             min_width=12,
         )
         table.add_row(
-            str(self.length),
-            str(self.width),
+            Text.assemble(
+                *[
+                    str(round(self.length.value, places)),
+                    " ",
+                    Text(str(self.length.unit)),
+                ]
+            ),
+            Text.assemble(
+                *[
+                    str(round(self.width.value, places)),
+                    " ",
+                    Text(str(self.width.unit)),
+                ]
+            ),
             Text.assemble(
                 *[
                     str(round(self.hypo.value, places)),
@@ -141,7 +197,7 @@ class RectCalc:
             self.width.convert("mm"),
             self.hypo.convert("mm"),
             self.hole_size.convert("mm"),
-            self.pad_size.convert("mm")
+            self.pad_size.convert("mm"),
         )
         table.add_row(
             self.length.convert("mil"),
@@ -152,12 +208,11 @@ class RectCalc:
         )
         return table
 
-
     def calc_hypo(
         self,
         length: Optional[Measurement] = None,
         width: Optional[Measurement] = None,
-        verbose: bool = False) -> Measurement:
+    ) -> Measurement:
         # Validate input
         if length or self.length:
             length = length or self.length
@@ -171,28 +226,32 @@ class RectCalc:
 
         # Calculate the hypotenuse
         a_sq = float(length.value) ** 2
-        if verbose:
+        if self.verbose:
             console.log(f"Length: {length}")
             console.log(f"Length Squared: {a_sq}")
         b_sq = float(width.value) ** 2
-        if verbose:
+        if self.verbose:
             console.log(f"Width: {width}")
             console.log(f"Width Squared: {b_sq}")
-        a_sq_plus_b_sq = a_sq + b_sq
-        if verbose:
-            console.log(f"Length Squared + Width Squared: {a_sq_plus_b_sq}")
-        hypo_value = sqrt(a_sq_plus_b_sq)
-        if verbose:
+        c_sq = a_sq + b_sq
+        if self.verbose:
+            console.log(f"Length Squared + Width Squared: {c_sq}")
+        hypo_value = sqrt(c_sq)
+        if self.verbose:
             console.log(f"Hypotenuse: {hypo_value}")
         return Measurement(hypo_value, "in")
 
+
     def calc_hole(
-        self, length: Optional[Measurement] = None, width: Optional[Measurement] = None
+        self,
+        length: Optional[Measurement] = None,
+        width: Optional[Measurement] = None
     ) -> Measurement:
-        self.hypo = self.calc_hypo(length, width).convert("in")
-        hole_value = (float(self.hypo.value) + 0.0029) + 0.003
+        if not self.hypo:
+            self.hypo = self.calc_hypo(length, width).convert("in")
+        hole_value = (float(self.hypo.value) + 0.0059)
         hole_size = Measurement(hole_value, "in")
-        _hole_size_mil:int = int(round(hole_size.convert("mil").value, 0))
+        _hole_size_mil: int = int(round(hole_size.convert("mil").value, 0))
         return Measurement(_hole_size_mil, "mil").convert("in")
 
     def calc_pad(
@@ -211,39 +270,22 @@ if __name__ == "__main__":
     console = Console()
 
     # Clear the console
+    console.line(9)
     console.clear()
     console.line(2)
 
     # Prompt for the length and width of the rectangle
     try:
-        length = FloatPrompt.ask(
-            "[#00ff00]Enter the length of the rectangle[/]",
-            console=console,
-            default=1.0
-        )
-        length_unit = Prompt.ask(
-            "[#00ff00]Enter the unit of the length[/]",
-            choices=['in', 'mm', 'mil'],
-            default="mm",
-            console=console
-        )
-        width = FloatPrompt.ask(
-            "[#00ff00]Enter the width of the rectangle[/]",
-            console=console,
-            default=1.0
-        )
-        width_unit = Prompt.ask(
-            "[#00ff00]Enter the unit of the width[/]",
-            choices=['in', 'mm', 'mil'],
-            default="mm",
-            console=console
-        )
-    except ValueError:
-        console.print("[#ff0000]Invalid input. Please enter numeric values.[/]")
-        exit(1)
+        rect_calc = RectCalc.prompt()
 
-    # Calculate the rectangle
-    rect_calc = RectCalc(Measurement(length, length_unit), Measurement(width, width_unit))
+    except KeyboardInterrupt:
+        console.print("Operation cancelled by user.")
+        console.line(2)
+        raise SystemExit
+    except Exception as e:
+        console.print(f"An error occurred: {e}")
+        console.line(2)
+        raise SystemExit
 
     console.line(3)
     console.print(rect_calc, justify="center")
