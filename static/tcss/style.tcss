@@ -1,0 +1,62 @@
+Header {
+  dock: top;
+  height: 3;
+  content-align: center middle;
+  background: #333333;
+  color: #cccccc;
+}
+
+Screen {
+    layout: grid;
+    grid-size: 2;
+    grid-columns: 2fr 1fr
+}
+
+* {
+  margin: 1;
+  padding: 1;
+}
+
+# base {
+#     padding: 5;
+#     content-align: center_middle;
+#     background: grey;
+#     color: white;
+# }
+
+.left {
+  dock: left;
+  width: 80;
+  background: #333333;
+  color: #cccccc;
+}
+
+Lable {
+  width: 100%;
+  height: 1fr;
+  content-align: center middle;
+  color: #cccccc;
+}
+
+ToggleButton {
+  width: 100%;
+  height: 1fr;
+  content-align: center middle;
+  background: #333333;
+  color: #cccccc;
+}
+
+ToggleButton:hover {
+  background: #444444;
+}
+
+ToggleButton:focus {
+  background: #555555;
+}
+
+ToggleWidget {
+  width: 70;
+  height: 1fr;
+  content-align: center middle;
+  background: #111111;
+}

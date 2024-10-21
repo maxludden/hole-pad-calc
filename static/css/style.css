@@ -1,0 +1,109 @@
+
+
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+
+@font-face{
+    font-family: 'Urbanist';
+    src: url('https://fonts.gstatic.com/s/urbanist/v1/CSR54zp5ZnPydRVTYf4DkZ7f.woff2') format('woff2');
+    font-weight:  400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Urbanist-Italic';
+    src: url('https://fonts.googleapis.com/css2?family=Urbanist:ital@1&display=swap') format('woff2');;
+    font-weight:  400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Urbanist-Bold';
+    src: url('https://fonts.gstatic.com/s/urbanist/v1/CSR44zp5ZnPydRVTYf4DkZ7f.woff2') format('woff2');
+    font-weight:  700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Urbanist-BoldItalic';
+    src: url('https://fonts.gstatic.com/s/urbanist/v1/CSR24zp5ZnPydRVTYf4DkZ7f.woff2') format('woff2');
+    font-weight:  700;
+    font-style: italic;
+    font-display: swap;
+}
+:root {
+    --white: #f3f3f3;
+    --lightGray: #cccccc;
+    --midGray: #888888;
+    --darkGray: #444444;
+    --black:: #111111;
+}
+:root {
+    --background-color: #121212;
+    --text-color: #f8f9fa;
+    --primary-color: #ad3cee;
+    --secondary-color: #adb5bd;
+    --border-color: #343a40;
+  }
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --background-color: #ffffff;
+        --text-color: #000000;
+        --primary-color: #713cee;
+        --secondary-color: #6c757d;
+        --border-color: #dee2e6;
+    }
+}
+
+
+  /* Apply the variables to elements */
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--primary-color);
+  }
+
+  p {
+    color: var(--text-color);
+  }
+
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--secondary-color);
+  }
+
+  button {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--primary-color);
+  }
+
+  input, textarea {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--primary-color);
+  }

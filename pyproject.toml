@@ -11,6 +11,10 @@ dependencies = [
     "python-dotenv[cli]>=1.0.1",
     "pytest>=8.3.2",
     "ipykernel>=6.29.5",
+    "mesop>=0.12.4",
+    "pip>=24.2",
+    "textual>=0.83.0",
+    "mypy>=1.11.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.12"
@@ -28,3 +32,6 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hole_pad_calc"]
+
+[tool.pyright]
+reportUnusedImport = false

@@ -1,0 +1,6 @@
+from: markdown+footnotes+
+to: markdown+footnotes+
+
+output-file: First God's Sanctuary.md
+data-dir:
+metadata-file: meta1.yaml

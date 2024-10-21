@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 from typing import Union
 
 from rich.text import Text
@@ -22,20 +23,20 @@ class Unit:
 
     def __init__(self, unit: Union[str, 'Unit'] = 'in') -> None:
         self._unit: str = ''
-        self.unit = unit  # This uses the property setter for validation
+        self.unit = str(unit)  # This uses the property setter for validation
 
     def __str__(self) -> str:
         return self.unit
 
 
-    def __eq__(self, other: Union[str, "Unit"]) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, (str, Unit)):
             raise NotImplementedError("Cannot compare Unit with non-string or non-Unit type.")
         if isinstance(other, Unit):
             return self.unit == other.unit
         return str(self.unit) == other
 
-    def __ne__(self, other: Union[str, "Unit"]) -> bool:
+    def __ne__(self, other: object) -> bool:
         if not isinstance(other, (str, Unit)):
             raise NotImplementedError("Cannot compare Unit with non-string or non-Unit type.")
         if isinstance(other, Unit):

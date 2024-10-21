@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PCB Hole & Pad Size Calculator</title>
+    <link rel="stylesheet" href="static/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>PCB Hole & Pad Size Calculator</h1>
+    </header>
+
+    <section class="input-section">
+        <table class="widget">
+            <tr>
+                <th>Enter Pin Size:</th>
+                <th>Select Unit:</th>
+            </tr>
+            <tr>
+                <td>
+                    <input
+                        type="number"
+                        id="pinSize"
+                        name="pinSize"
+                        placeholder="Enter pin size"
+                        required="true"
+                    />
+                    <span id="selectedUnit">mm</span>
+                </td>
+                <td>
+                    <div
+                        class="unit-toggle"
+                        style="
+                            display: inline-block;
+                            vertical-align: top;
+                            margin-left: 10px;
+                        "
+                    ></div>
+                    <button type="button" class="unit-btn" data-unit="mm">
+                        mm
+                    </button>
+                    <button type="button" class="unit-btn" data-unit="mil">
+                        mil
+                    </button>
+                    <button type="button" class="unit-btn" data-unit="in">
+                        in
+                    </button>
+                    <input type="hidden" id="units" name="units" value="mm" />
+                </td>
+            </tr>
+        </table>
+        <br />
+        <button type="submit" id="calculateBtn">Calculate</button>
+    </section>
+
+    <script>
+        document.querySelectorAll('.unit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const unit = this.getAttribute('data-unit');
+                document.getElementById('units').value = unit;
+                document.getElementById('selectedUnit').textContent = unit;
+            });
+        });
+    </script>
+
+    <section class="output-section">
+      <h2>Results</h2>
+      <p id="holeSize">Hole Size: --</p>
+      <p id="padSize">Pad Size: --</p>
+    </section>
+
+    <script>
+      document
+        .getElementById("calculateBtn")
+        .addEventListener("click", function () {
+          // Get input values
+          const pinSize = document.getElementById("pinSize").value;
+          const unit = document.getElementById("units").value;
+
+          // Input validation
+          if (!pinSize || pinSize <= 0) {
+            alert("Please enter a valid pin size.");
+            return;
+          }
+
+          // Example calculation logic (you will replace this with your Python API call)
+          const holeSize = parseFloat(pinSize) * 1.1; // For example, 10% larger
+          const padSize = parseFloat(pinSize) * 1.5; // For example, 50% larger
+
+          // Update the output section
+          document.getElementById(
+            "holeSize"
+          ).textContent = `Hole Size: ${holeSize.toFixed(3)} ${unit}`;
+          document.getElementById(
+            "padSize"
+          ).textContent = `Pad Size: ${padSize.toFixed(3)} ${unit}`;
+        });
+    </script>
+  </body>
+</html>

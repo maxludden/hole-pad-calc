@@ -1,9 +1,9 @@
 from math import sqrt
-from typing import Optional, Tuple
+from typing import Optional
 
 from rich.box import ROUNDED
 from rich.console import Console
-from rich.prompt import Confirm, FloatPrompt, Prompt
+from rich.prompt import FloatPrompt, Prompt
 from rich.table import Table
 from rich.text import Text
 from rich_gradient import Gradient
@@ -27,7 +27,8 @@ class RectCalc:
         width: Optional[Measurement] = None,
         *,
         hole: Optional[Measurement] = None,
-        verbose: bool = False) -> None:
+        verbose: bool = False,
+    ) -> None:
         """Calculate the pin, hole, and pad sizes for a rectangular pin."""
         self.verbose: bool = verbose
         # Validate input
@@ -52,7 +53,10 @@ class RectCalc:
                     self.hypo = self.calc_hypo(self.length, self.width)
                     calculated_hole = self.calc_hole(self.length, self.width)
                     # Check if the provided hole size is close to the calculated hole size
-                    if abs(calculated_hole.value - self.hole_size.value) > self.TOLERANCE:
+                    if (
+                        abs(calculated_hole.value - self.hole_size.value)
+                        > self.TOLERANCE
+                    ):
                         raise ValueError(
                             f"Provided hole size {self.hole_size} is not consistent with "
                             f"calculated hole size {calculated_hole}."
@@ -82,10 +86,14 @@ class RectCalc:
                 )
         self.pad_size = self.calc_pad()
 
-
     @classmethod
     def prompt(cls) -> "RectCalc":
-        mode = Prompt.ask("Generate from pin or hole size?", choices=["pin", "hole"], default="pin", show_choices=True)
+        mode = Prompt.ask(
+            "Generate from pin or hole size?",
+            choices=["pin", "hole"],
+            default="pin",
+            show_choices=True,
+        )
         if mode == "pin":
             length_value = FloatPrompt.ask("Enter the length of the rectangle")
             length_unit = Prompt.ask(
@@ -107,13 +115,13 @@ class RectCalc:
                 width = width.convert("in")
             return cls(length, width)
         else:
-            hole_size = FloatPrompt.ask("Enter the size of the hole")
+            hole_value = FloatPrompt.ask("Enter the size of the hole")
             hole_unit = Prompt.ask(
                 "Enter the unit of the hole",
                 choices=["in", "mm", "mil"],
                 default="in",
             )
-            hole_size = Measurement(hole_size, unit=hole_unit)
+            hole_size = Measurement(hole_value, unit=hole_unit)
             return cls(hole=hole_size)
 
     def __rich__(self) -> Table:
@@ -157,39 +165,29 @@ class RectCalc:
         )
         table.add_row(
             Text.assemble(
-                *[
-                    str(round(self.length.value, places)),
-                    " ",
-                    Text(str(self.length.unit)),
-                ]
+                str(round(self.length.value, places)),
+                " ",
+                Text(str(self.length.unit)),
             ),
             Text.assemble(
-                *[
-                    str(round(self.width.value, places)),
-                    " ",
-                    Text(str(self.width.unit)),
-                ]
+                str(round(self.width.value, places)),
+                " ",
+                Text(str(self.width.unit)),
             ),
             Text.assemble(
-                *[
-                    str(round(self.hypo.value, places)),
-                    " ",
-                    Text(str(self.hypo.unit)),
-                ]
+                str(round(self.hypo.value, places)),
+                " ",
+                Text(str(self.hypo.unit)),
             ),
             Text.assemble(
-                *[
-                    str(round(self.hole_size.value, places)),
-                    " ",
-                    Text(str(self.hole_size.unit)),
-                ]
+                str(round(self.hole_size.value, places)),
+                " ",
+                Text(str(self.hole_size.unit)),
             ),
             Text.assemble(
-                *[
-                    str(round(self.pad_size.value, places)),
-                    " ",
-                    Text(str(self.pad_size.unit)),
-                ]
+                str(round(self.pad_size.value, places)),
+                " ",
+                Text(str(self.pad_size.unit)),
             ),
         )
         table.add_row(
@@ -241,15 +239,12 @@ class RectCalc:
             console.log(f"Hypotenuse: {hypo_value}")
         return Measurement(hypo_value, "in")
 
-
     def calc_hole(
-        self,
-        length: Optional[Measurement] = None,
-        width: Optional[Measurement] = None
+        self, length: Optional[Measurement] = None, width: Optional[Measurement] = None
     ) -> Measurement:
         if not self.hypo:
             self.hypo = self.calc_hypo(length, width).convert("in")
-        hole_value = (float(self.hypo.value) + 0.0059)
+        hole_value = float(self.hypo.value) + 0.0059
         hole_size = Measurement(hole_value, "in")
         _hole_size_mil: int = int(round(hole_size.convert("mil").value, 0))
         return Measurement(_hole_size_mil, "mil").convert("in")

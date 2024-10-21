@@ -10,102 +10,66 @@
 #   universal: false
 
 -e file:.
+absl-py==2.1.0
 annotated-types==0.7.0
-    # via pydantic
 asttokens==2.4.1
-    # via stack-data
+blinker==1.8.2
 click==8.1.7
-    # via python-dotenv
 comm==0.2.2
-    # via ipykernel
 debugpy==1.8.5
-    # via ipykernel
 decorator==5.1.1
-    # via ipython
+deepdiff==6.7.1
 executing==2.1.0
-    # via stack-data
+flask==3.0.3
 iniconfig==2.0.0
-    # via pytest
 ipykernel==6.29.5
-    # via hole-pad-calc
 ipython==8.27.0
-    # via ipykernel
+itsdangerous==2.2.0
 jedi==0.19.1
-    # via ipython
+jinja2==3.1.4
 jupyter-client==8.6.3
-    # via ipykernel
 jupyter-core==5.7.2
-    # via ipykernel
-    # via jupyter-client
+linkify-it-py==2.0.3
+markdown==3.7
 markdown-it-py==3.0.0
-    # via rich
+markupsafe==2.1.5
 matplotlib-inline==0.1.7
-    # via ipykernel
-    # via ipython
+mdit-py-plugins==0.4.2
 mdurl==0.1.2
-    # via markdown-it-py
+mesop==0.12.4
+msgpack==1.1.0
+mypy==1.11.2
+mypy-extensions==1.0.0
 nest-asyncio==1.6.0
-    # via ipykernel
+ordered-set==4.1.0
 packaging==24.1
-    # via ipykernel
-    # via pytest
 parso==0.8.4
-    # via jedi
 pexpect==4.9.0
-    # via ipython
+pip==24.2
 platformdirs==4.3.6
-    # via jupyter-core
 pluggy==1.5.0
-    # via pytest
 prompt-toolkit==3.0.47
-    # via ipython
+protobuf==5.28.2
 psutil==6.0.0
-    # via ipykernel
 ptyprocess==0.7.0
-    # via pexpect
 pure-eval==0.2.3
-    # via stack-data
 pydantic==2.8.2
-    # via pydantic-extra-types
-    # via rich-gradient
 pydantic-core==2.20.1
-    # via pydantic
 pydantic-extra-types==2.9.0
-    # via rich-gradient
 pygments==2.18.0
-    # via ipython
-    # via rich
 pytest==8.3.2
-    # via hole-pad-calc
 python-dateutil==2.9.0.post0
-    # via jupyter-client
 python-dotenv==1.0.1
-    # via hole-pad-calc
 pyzmq==26.2.0
-    # via ipykernel
-    # via jupyter-client
 rich==13.8.0
-    # via hole-pad-calc
-    # via rich-gradient
 rich-gradient==0.1.7
-    # via hole-pad-calc
 six==1.16.0
-    # via asttokens
-    # via python-dateutil
 stack-data==0.6.3
-    # via ipython
+textual==0.83.0
 tornado==6.4.1
-    # via ipykernel
-    # via jupyter-client
 traitlets==5.14.3
-    # via comm
-    # via ipykernel
-    # via ipython
-    # via jupyter-client
-    # via jupyter-core
-    # via matplotlib-inline
 typing-extensions==4.12.2
-    # via pydantic
-    # via pydantic-core
+uc-micro-py==1.0.3
+watchdog==5.0.2
 wcwidth==0.2.13
-    # via prompt-toolkit
+werkzeug==3.0.4
